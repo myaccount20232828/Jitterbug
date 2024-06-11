@@ -775,7 +775,7 @@ cleanup:
         return NO;
     }
 
-    afc_error_t afc_error = afc_client_new(self.device, service, &self.afc);
+    afc_error_t afc_error = afc_client_new(self.device, service, &_afc);
     lockdownd_service_descriptor_free(service);
 
     if (afc_error != AFC_E_SUCCESS) {
