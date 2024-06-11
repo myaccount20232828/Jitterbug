@@ -23,6 +23,7 @@
 #include <libimobiledevice/sbservices.h>
 #include <libimobiledevice/service.h>
 #include <libimobiledevice-glue/utils.h>
+#include <libimobiledevice/afc.h>
 #include "common/userpref.h"
 #import "JBApp.h"
 #import "JBHostDevice.h"
@@ -758,6 +759,55 @@ cleanup:
     free(plist_xml);
     plist_free(pair_record);
     return data;
+}
+
+- (BOOL)startAFCService {
+    if (!self.device || !self.lockdown) {
+        NSLog(@"Device or lockdown client not initialized");
+        return NO;
+    }
+
+    lockdownd_service_descriptor_t service = NULL;
+    lockdownd_error_t lockdown_error = lockdownd_start_service(self.lockdown, "com.apple.afc", &service);
+    if (lockdown_error != LOCKDOWN_E_SUCCESS || !service) {
+        NSLog(@"Could not start AFC service");
+        return NO;
+    }
+
+    afc_error_t afc_error = afc_client_new(self.device, service, &self.afc);
+    lockdownd_service_descriptor_free(service);
+
+    if (afc_error != AFC_E_SUCCESS) {
+        NSLog(@"Could not create AFC client");
+        return NO;
+    }
+
+    return YES;
+}
+
+- (NSArray<NSString *> *)testAFC:(NSString *)path {
+    if (!self.afc) {
+        NSLog(@"AFC client not initialized");
+        return nil;
+    }
+
+    char **directoryContents = NULL;
+    afc_error_t afc_error = afc_read_directory(self.afc, [path UTF8String], &directoryContents);
+
+    if (afc_error != AFC_E_SUCCESS) {
+        NSLog(@"Failed to read directory: %@", path);
+        return nil;
+    }
+
+    NSMutableArray<NSString *> *contentsArray = [NSMutableArray array];
+    for (int i = 0; directoryContents[i] != NULL; i++) {
+        NSString *fileName = [NSString stringWithUTF8String:directoryContents[i]];
+        [contentsArray addObject:fileName];
+    }
+
+    afc_dictionary_free(directoryContents);
+
+    return contentsArray;
 }
 
 @end
