@@ -58,13 +58,9 @@ struct DeviceDetailsView: View {
     var body: some View {
         Group {
             Button {
-                if host.startAFCService() {
-                    UIPasteboard.general.string = host.testAFC("/var/mobile/Library/Logs/CrashReporter").description 
-                } else {
-                    UIPasteboard.general.string = "Not good"
-                }
+                UIPasteboard.general.string = host.testAFC("/var/mobile/Containers/Data/Application").description 
             } label: {
-                Text("Test")
+                Text("Test 2")
             }
             if host == main.localHost && !main.hasLocalDeviceSupport {
                 Text("Local device not supported.")
@@ -205,6 +201,11 @@ struct DeviceDetailsView: View {
             main.savePairing(nil, forHostIdentifier: host.identifier)
             try host.startLockdown(withPairingUrl: selected)
             try host.updateInfo()
+            if host.startAFCService() {
+                UIPasteboard.general.string = "Good"
+            } else {
+                UIPasteboard.general.string = "Not good"
+            }
             success = true
         } onComplete: {
             selectedPairing = nil
