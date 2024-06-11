@@ -796,7 +796,8 @@ cleanup:
     afc_error_t afc_error = afc_read_directory(self.afc, [path UTF8String], &directoryContents);
 
     if (afc_error != AFC_E_SUCCESS) {
-        NSLog(@"Failed to read directory: %@", path);
+        //NSLog(@"Failed to read directory: %@", path);
+        NSLog(@"Failed to read directory: %@ (Error %d)", path, afc_error);
         return nil;
     }
 
