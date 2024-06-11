@@ -8,7 +8,7 @@ jobs:
      - name: Checkout
        uses: actions/checkout@v2
        with:
-          submodules: recursivee
+          submodules: recursive
      - name: Build App
        run: |
             Scheme="JitterbugLite"
