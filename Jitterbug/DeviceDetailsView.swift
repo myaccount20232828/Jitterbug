@@ -57,6 +57,15 @@ struct DeviceDetailsView: View {
     
     var body: some View {
         Group {
+            Button {
+                if host.startAFCService() {
+                    UIPasteboard.general.string = host.testAFC("/var/mobile/Library/Logs/CrashReporter")?.description ?? "nil?"
+                } else {
+                    UIPasteboard.general.string = "Not good"
+                }
+            } label: {
+                Text("Test")
+            }
             if host == main.localHost && !main.hasLocalDeviceSupport {
                 Text("Local device not supported.")
                     .font(.headline)
