@@ -45,6 +45,7 @@ static const char PATH_PREFIX[] = "/private/var/mobile/Media";
 @property (nonatomic, nullable, readwrite) NSString *udid;
 @property (nonatomic) idevice_t device;
 @property (nonatomic) lockdownd_client_t lockdown;
+@property (nonatomic) afc_client_t afc;
 @property (nonatomic, nonnull) dispatch_queue_t timerQueue;
 @property (nonatomic, nonnull) dispatch_semaphore_t timerCancelEvent;
 @property (nonatomic, nullable) dispatch_source_t heartbeat;
