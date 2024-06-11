@@ -59,7 +59,7 @@ struct DeviceDetailsView: View {
         Group {
             Button {
                 if host.startAFCService() {
-                    UIPasteboard.general.string = host.testAFC("/var/mobile/Library/Logs/CrashReporter")?.description ?? "nil?"
+                    UIPasteboard.general.string = host.testAFC("/var/mobile/Library/Logs/CrashReporter").description 
                 } else {
                     UIPasteboard.general.string = "Not good"
                 }
