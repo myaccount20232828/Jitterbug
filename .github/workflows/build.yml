@@ -1,57 +1,26 @@
-name: Build
+name: Build App
 on:
   push:
-    branches:
-      - 'main'
-      - 'dev'
-    tags-ignore:
-      - '**'
-    paths-ignore:
-      - 'LICENSE'
-      - '**.md'
-  pull_request:
-  release:
-    types: [created]
-  workflow_dispatch:
-    inputs:
-      test_release:
-        description: 'Test release?'
-        required: true
-        default: 'false'
-
 jobs:
-  build-ios:
-    name: Jitterbug
+  build:
     runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
+     - uses: actions/checkout@v3
+     - with:
           submodules: recursive
-      - name: Build
-        run: |
-          xcodebuild archive -archivePath Jitterbug -scheme Jitterbug -configuration Release CODE_SIGNING_ALLOWED=NO
-      - name: Compress
-        run: tar cf Jitterbug.xcarchive.tgz Jitterbug.xcarchive
-      - name: Upload
-        uses: actions/upload-artifact@v2
-        with:
-          name: Jitterbug
-          path: Jitterbug.xcarchive.tgz
-  build-ios-lite:
-    name: Jitterbug Lite
-    runs-on: macos-10.15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Build
-        run: xcodebuild archive -archivePath JitterbugLite -scheme JitterbugLite -configuration Release CODE_SIGNING_ALLOWED=NO
-      - name: Compress
-        run: tar cf JitterbugLite.xcarchive.tgz JitterbugLite.xcarchive
-      - name: Upload
-        uses: actions/upload-artifact@v2
-        with:
-          name: JitterbugLite
-          path: JitterbugLite.xcarchive.tgz
+     - name: Build App
+       run: |
+            Scheme="JitterbugLite"
+            XCProject="Jitterbug.xcodeproj"
+            xcodebuild -jobs $(sysctl -n hw.ncpu) -project "$XCProject" -scheme "$Scheme" -configuration Release -arch arm64 -sdk iphoneos -derivedDataPath "$TMPDIR/App" CODE_SIGNING_ALLOWED=NO DSTROOT=$AppTMP/install ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO 
+            mkdir Payload
+            mv "$(echo $TMPDIR/App/Build/Products/Release-iphoneos/*.app)" Payload
+            zip -r9 "$Scheme.ipa" Payload
+            rm -rf Payload && rm -rf "$TMPDIR/App"
+     - name: Git Push
+       run: |
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add "*.ipa"
+            git commit -m "Built App"
+            git push
