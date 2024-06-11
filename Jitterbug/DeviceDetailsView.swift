@@ -28,7 +28,7 @@ struct TestView: View {
             .cornerRadius(15)
             LogView()
             Button {
-                print(host.testAFC(Path)) 
+                print(Host.testAFC(Path)) 
             } label: {
                 Text("Test")
                 .font(.system(size: 20))
