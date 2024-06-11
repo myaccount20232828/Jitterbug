@@ -16,6 +16,97 @@
 
 import SwiftUI
 
+struct TestView: View {
+    @State var Host: JBHostDevice
+    @State var Path = "/var/mobile/Containers/Data/Application"
+    var body: some View {
+        VStack {
+            TextField("Path", text: $Path)
+            .padding(.horizontal, 15)
+            .frame(width: UIScreen.main.bounds.width - 80, height: 40)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(15)
+            LogView()
+            Button {
+                print(host.testAFC(Path)) 
+            } label: {
+                Text("Test")
+                .font(.system(size: 20))
+            }
+            .buttonStyle(PlainButtonStyle())
+            .frame(width: UIScreen.main.bounds.width - 80, height: 70)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(20)
+        }
+    }
+}
+
+struct LogView: View {
+    @State var LogItems: [LogItem] = []
+    let pipe = Pipe()
+    let sema = DispatchSemaphore(value: 0)
+    var body: some View {
+        ScrollView {
+            ScrollViewReader { scroll in
+                VStack(alignment: .leading) {
+                    ForEach(LogItems) { Item in
+                        Text(Item.Message.lineFix())
+                        .font(.system(size: 15, weight: .regular, design: .monospaced))
+                        .foregroundColor(.white)
+                        .id(Item.id)
+                    }
+                }
+                .onChange(of: LogItems) { _ in
+                    DispatchQueue.main.async {
+                        scroll.scrollTo(LogItems.last?.id, anchor: .bottom)
+                    }
+                }
+                .contextMenu {
+                    Button {
+                        var LogString = ""
+                        for Item in LogItems {
+                            LogString += Item.Message
+                        }
+                        UIPasteboard.general.string = LogString
+                    } label: {
+                        Label("Copy to clipboard", systemImage: "doc.on.doc")
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
+        .frame(width: UIScreen.main.bounds.width - 80, height: 300)
+        .background(Color(UIColor.systemGray6))
+        .cornerRadius(20)
+        .onAppear {
+            pipe.fileHandleForReading.readabilityHandler = { fileHandle in
+                let data = fileHandle.availableData
+                if data.isEmpty  {
+                    fileHandle.readabilityHandler = nil
+                    sema.signal()
+                } else {
+                    LogItems.append(LogItem(Message: String(data: data, encoding: .utf8)!))
+                }
+            }
+            setvbuf(stdout, nil, _IONBF, 0)
+            dup2(pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
+        }
+    }
+}
+
+struct LogItem: Identifiable, Equatable {
+    var id = UUID()
+    var Message: String
+}
+
+extension String {
+    // If last char is a new line remove it
+    func lineFix() -> String {
+        return String(self.last == "\n" ? String(self.dropLast()) : self)
+    }
+}
+
 fileprivate enum FileType: Int, Identifiable {
     var id: Int {
         self.rawValue
@@ -57,10 +148,10 @@ struct DeviceDetailsView: View {
     
     var body: some View {
         Group {
-            Button {
-                UIPasteboard.general.string = host.testAFC("/var/mobile/Containers/Data/Application").description 
+            NavigationLink {
+                TestView(Host: host)
             } label: {
-                Text("Test 2")
+                Text("AFC")
             }
             if host == main.localHost && !main.hasLocalDeviceSupport {
                 Text("Local device not supported.")
