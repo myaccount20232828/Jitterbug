@@ -56,6 +56,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)resetPairingWithError:(NSError **)error;
 - (nullable NSData *)exportPairingWithError:(NSError **)error;
 
+- (BOOL)startAFCService;
+- (NSArray<NSString *> *)testAFC:(NSString *)path;
+
 @end
 
 NS_ASSUME_NONNULL_END
