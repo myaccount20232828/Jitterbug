@@ -8,7 +8,7 @@ jobs:
      - uses: actions/checkout@v3
      - name: Build App
        run: |
-            Scheme="JitterbugLite
+            Scheme="JitterbugLite"
             XCProject="Jitterbug.xcodeproj"
             xcodebuild -jobs $(sysctl -n hw.ncpu) -project "$XCProject" -scheme "$Scheme" -configuration Release -arch arm64 -sdk iphoneos -derivedDataPath "$TMPDIR/App" CODE_SIGNING_ALLOWED=NO DSTROOT=$AppTMP/install ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO 
             mkdir Payload
